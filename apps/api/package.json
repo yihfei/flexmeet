@@ -1,0 +1,36 @@
+{
+  "name": "@flexmeet/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
+    "build": "prisma generate && tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prisma": "prisma",
+    "postinstall": "prisma generate"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "22",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.2"
+  },
+  "dependencies": {
+    "@flexmeet/shared": "workspace:^",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "prisma": "7.10.0",
+    "zod": "^4.6.5"
+  }
+}

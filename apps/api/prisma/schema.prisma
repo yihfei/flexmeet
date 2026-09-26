@@ -1,0 +1,11 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Add your models here (events, participants, availability, ...), then run:
+//   pnpm --filter @flexmeet/api prisma migrate dev --name <change>

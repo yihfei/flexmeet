@@ -1,0 +1,45 @@
+# Production-like stack: db + api + web (nginx). Run with:
+#   docker compose -f docker-compose.prod.yml up --build
+# Separate project name so it doesn't replace the dev db container/volume.
+name: flexmeet-prod
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-flexmeet}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flexmeet}
+      POSTGRES_DB: ${POSTGRES_DB:-flexmeet}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-flexmeet}:${POSTGRES_PASSWORD:-flexmeet}@db:5432/${POSTGRES_DB:-flexmeet}
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
