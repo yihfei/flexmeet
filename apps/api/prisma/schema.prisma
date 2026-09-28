@@ -9,3 +9,16 @@ datasource db {
 
 // Add your models here (events, participants, availability, ...), then run:
 //   pnpm --filter @flexmeet/api prisma migrate dev --name <change>
+model Event {
+  id              Int        @id @default(autoincrement())
+  slug            String     @unique @db.VarChar(16)
+  title           String     @db.VarChar(100)
+  dates           DateTime[] @db.Date
+  startMinute     Int        // minutes after local midnight: 540 = 09:00
+  endMinute       Int        // exclusive: 1020 = the grid stops at 17:00
+  slotMinutes     Int        @default(30)
+  durationMinutes Int?
+  timezone        String     // IANA name, e.g. "Asia/Singapore"
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
