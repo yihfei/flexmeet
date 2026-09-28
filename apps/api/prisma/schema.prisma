@@ -21,4 +21,4 @@ model Event {
   timezone        String     // IANA name, e.g. "Asia/Singapore"
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
-}
+} 

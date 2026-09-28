@@ -4,3 +4,5 @@ export interface HealthResponse {
   status: 'ok' | 'error';
   db: 'ok' | 'error';
 }
+
+export * from './event.js';
