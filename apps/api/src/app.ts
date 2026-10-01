@@ -2,6 +2,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './env.js';
+import { eventsRouter } from './routes/events.js';
 import { healthRouter } from './routes/health.js';
 
 export function createApp() {
@@ -12,6 +13,7 @@ export function createApp() {
   app.use(express.json());
 
   app.use('/api/health', healthRouter);
+  app.use('/api/events', eventsRouter);
 
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Not found' });
