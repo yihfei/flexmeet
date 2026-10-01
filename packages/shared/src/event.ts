@@ -48,3 +48,15 @@ export const createEventSchema = z
   });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
+
+export interface EventResponse {
+  slug: string;
+  title: string;
+  dates: string[]; // 'YYYY-MM-DD'
+  startMinute: number;
+  endMinute: number;
+  slotMinutes: number;
+  durationMinutes: number | null;
+  timezone: string;
+  createdAt: string; // ISO timestamp
+}
