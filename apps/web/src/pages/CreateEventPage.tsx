@@ -173,7 +173,7 @@ export function CreateEventPage() {
             <FieldError messages={fieldErrors.slotMinutes} />
           </div>
           <div className="field">
-            <label htmlFor="duration">Meeting length (optional)</label>
+            <label htmlFor="duration">Length (optional)</label>
             <select
               id="duration"
               value={durationMinutes}

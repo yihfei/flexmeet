@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { minutesToTime, timeToMinutes, todayYmd } from './time';
+import { formatYmdParts, minutesToTime, timeToMinutes, todayYmd } from './time';
 
 describe('timeToMinutes', () => {
   it('converts HH:MM to minutes after midnight', () => {
@@ -25,5 +25,15 @@ describe('minutesToTime', () => {
 describe('todayYmd', () => {
   it('uses the local calendar date', () => {
     expect(todayYmd(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+  });
+});
+
+describe('formatYmdParts', () => {
+  it('keeps the calendar day of the date string in any timezone', () => {
+    const { weekday, dayMonth } = formatYmdParts('2026-12-20');
+    expect(weekday).toBe(
+      new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(2026, 11, 20)),
+    );
+    expect(dayMonth).toMatch(/20/);
   });
 });

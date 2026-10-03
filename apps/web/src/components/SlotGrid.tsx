@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type HTMLAttributes } from 'react';
 import { slotKey, slotStartMinutes, type EventGrid } from '@flexmeet/shared';
 import type { Cell } from '../lib/grid';
-import { formatYmd, minutesToTime } from '../lib/time';
+import { formatYmdParts, minutesToTime } from '../lib/time';
 
 interface SlotGridProps extends HTMLAttributes<HTMLDivElement> {
   event: EventGrid;
@@ -21,22 +21,31 @@ export function SlotGrid({ event, cellClassName, cellStyle, className, ...rest }
         style={{ '--cols': event.dates.length } as CSSProperties}
         {...rest}
       >
-        <div />
-        {event.dates.map((date) => (
-          <div key={date} className="slot-grid-date">
-            {formatYmd(date)}
-          </div>
-        ))}
+        <div className="slot-grid-corner" />
+        {event.dates.map((date) => {
+          const { weekday, dayMonth } = formatYmdParts(date);
+          return (
+            <div key={date} className="slot-grid-date">
+              <span>{weekday}</span>
+              <span>{dayMonth}</span>
+            </div>
+          );
+        })}
 
         {minutes.map((minute, minuteIndex) => (
           <Fragment key={minute}>
-            <div className="slot-grid-time">{minute % 60 === 0 ? minutesToTime(minute) : ''}</div>
+            <div className="slot-grid-time">
+              {/* Hours only, plus the first row so a grid that starts at :30 still has a label. */}
+              {(minuteIndex === 0 || minute % 60 === 0) && <span>{minutesToTime(minute)}</span>}
+            </div>
             {event.dates.map((date, dateIndex) => {
               const key = slotKey(date, minute);
+              // Solid line where the next hour starts, so rows line up with the hour labels.
+              const endsOnHour = (minute + event.slotMinutes) % 60 === 0;
               return (
                 <div
                   key={key}
-                  className={`slot ${cellClassName?.(key) ?? ''}`}
+                  className={`slot ${endsOnHour ? 'hour-end' : ''} ${cellClassName?.(key) ?? ''}`}
                   style={cellStyle?.(key)}
                   data-slot={key}
                   data-date-index={dateIndex}

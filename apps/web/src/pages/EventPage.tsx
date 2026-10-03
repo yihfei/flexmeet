@@ -4,7 +4,7 @@ import type { EventResponse, ParticipantResponse } from '@flexmeet/shared';
 import { AvailabilityGrid } from '../components/AvailabilityGrid';
 import { GroupGrid } from '../components/GroupGrid';
 import { ParticipantPicker } from '../components/ParticipantPicker';
-import { formatYmd, minutesToTime } from '../lib/time';
+import { minutesToTime } from '../lib/time';
 import { NotFoundPage } from './NotFoundPage';
 
 // One state value instead of separate loading/error/data flags, so impossible
@@ -59,6 +59,7 @@ type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 function EventDetails({ event }: { event: EventResponse }) {
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   const [participants, setParticipants] = useState(event.participants);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
@@ -110,43 +111,43 @@ function EventDetails({ event }: { event: EventResponse }) {
   }
 
   async function copyLink() {
-    await navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+    } catch {
+      // The clipboard API only exists on https and localhost (not e.g. a phone on the
+      // LAN), and can be denied. Show the link so it can be copied by hand instead.
+      setCopyFailed(true);
+    }
   }
 
   return (
-    <>
+    <div className="event-page">
       <h1>{event.title}</h1>
+      {/* The dates are already the grid's column headers, so they aren't repeated here. */}
+      <p className="muted event-meta">
+        {minutesToTime(event.startMinute)}–{minutesToTime(event.endMinute)} · {event.timezone} ·{' '}
+        {event.slotMinutes}-min slots
+        {event.durationMinutes !== null && ` · ${event.durationMinutes}-min meeting`}
+      </p>
 
       <p>
         Share this link so people can add their availability:{' '}
-        <button type="button" onClick={copyLink}>
-          {copied ? 'Copied!' : 'Copy link'}
-        </button>
-      </p>
-
-      <dl className="details">
-        <dt>Time</dt>
-        <dd>
-          {minutesToTime(event.startMinute)}–{minutesToTime(event.endMinute)} ({event.timezone})
-        </dd>
-        <dt>Slots</dt>
-        <dd>{event.slotMinutes} minutes</dd>
-        {event.durationMinutes !== null && (
-          <>
-            <dt>Meeting length</dt>
-            <dd>{event.durationMinutes} minutes</dd>
-          </>
+        {copyFailed ? (
+          <input
+            className="share-link"
+            aria-label="Event link"
+            readOnly
+            autoFocus
+            value={window.location.href}
+            onFocus={(e) => e.currentTarget.select()}
+          />
+        ) : (
+          <button type="button" onClick={copyLink}>
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
         )}
-        <dt>Dates</dt>
-        <dd>
-          <ul className="date-list">
-            {event.dates.map((date) => (
-              <li key={date}>{formatYmd(date)}</li>
-            ))}
-          </ul>
-        </dd>
-      </dl>
+      </p>
 
       <ParticipantPicker
         slug={event.slug}
@@ -163,14 +164,20 @@ function EventDetails({ event }: { event: EventResponse }) {
         <section>
           <h2>{me ? `${me.name}'s availability` : 'Your availability'}</h2>
           {me ? (
-            <>
-              <p className="muted">
-                Click and drag to mark when you're free. <SaveStatus state={saveState} />
-              </p>
-              <AvailabilityGrid event={event} selected={mySlots} onChange={saveSlots} />
-            </>
+            <AvailabilityGrid
+              event={event}
+              selected={mySlots}
+              onChange={saveSlots}
+              hint={
+                <p className="muted">
+                  Drag across the grid to mark when you're free. <SaveStatus state={saveState} />
+                </p>
+              }
+            />
           ) : (
-            <p className="muted">Choose or add your name above to fill in your availability.</p>
+            <div className="grid-meta">
+              <p className="muted">Choose or add your name above to fill in your availability.</p>
+            </div>
           )}
         </section>
         <section>
@@ -178,7 +185,7 @@ function EventDetails({ event }: { event: EventResponse }) {
           <GroupGrid event={event} participants={participants} />
         </section>
       </div>
-    </>
+    </div>
   );
 }
 

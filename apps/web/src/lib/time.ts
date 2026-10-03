@@ -24,13 +24,16 @@ export function todayYmd(now = new Date()): string {
 }
 
 // 'YYYY-MM-DD' parses as UTC midnight, so format in UTC to keep the same calendar day.
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
-  weekday: 'short',
+const weekdayFormatter = new Intl.DateTimeFormat(undefined, { weekday: 'short', timeZone: 'UTC' });
+const dayMonthFormatter = new Intl.DateTimeFormat(undefined, {
   day: 'numeric',
   month: 'short',
   timeZone: 'UTC',
 });
 
-export function formatYmd(ymd: string): string {
-  return dateFormatter.format(new Date(ymd));
+// '2026-12-20' -> { weekday: 'Sun', dayMonth: '20 Dec' } (order depends on the locale).
+// Two parts so a narrow grid column can show them on two lines instead of wrapping anywhere.
+export function formatYmdParts(ymd: string): { weekday: string; dayMonth: string } {
+  const date = new Date(ymd);
+  return { weekday: weekdayFormatter.format(date), dayMonth: dayMonthFormatter.format(date) };
 }

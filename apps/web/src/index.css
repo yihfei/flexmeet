@@ -11,6 +11,7 @@
   --error: #c62828;
   --radius: 6px;
   --space: 1rem;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI that responds to the user */
 
   font-family: var(--font);
   color: var(--text);
@@ -61,6 +62,10 @@ button {
   color: inherit;
 }
 
+select {
+  max-width: 100%; /* a select is as wide as its longest option, e.g. a 50-character name */
+}
+
 button {
   cursor: pointer;
 }
@@ -106,6 +111,11 @@ fieldset.field > .row {
   align-items: flex-start;
 }
 
+.row > .field,
+.row > input {
+  min-width: 0; /* shrink below their content's width instead of overflowing on phones */
+}
+
 .row > .field {
   flex: 1;
 }
@@ -121,37 +131,168 @@ fieldset.field > .row {
   margin: 0;
 }
 
-/* Event details */
+/* Event page */
 
-.details {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.25rem var(--space);
+/* Two grids side by side need more room than the 40rem form pages. */
+main:has(.event-page) {
+  max-width: 64rem;
 }
 
-.details dt {
-  font-weight: 600;
+.event-page h1 {
+  margin-bottom: 0;
+  font-size: clamp(
+    1.5rem,
+    4vw + 0.5rem,
+    2rem
+  ); /* a 100-character title stays a few lines on phones */
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
-.details dd {
-  margin: 0;
+.share-link {
+  width: 100%;
+  max-width: 24rem;
 }
 
-.date-list {
-  margin: 0;
-  padding-left: 1.2rem;
+.event-meta {
+  margin-top: 0.25rem;
 }
 
 /* Availability */
 
 .picker {
-  margin-top: calc(var(--space) * 1.5);
+  margin: calc(var(--space) * 1.5) 0;
 }
 
+.picker-label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.picker-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+}
+
+.picker-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.picker-filter {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  margin-top: 0.5rem;
+}
+
+.picker-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  max-height: 11rem; /* about 4 rows of names; the filter narrows the rest */
+  overflow-y: auto;
+  margin-top: 0.75rem;
+  padding: 2px; /* keeps focus rings inside the scroll box */
+}
+
+.chip {
+  max-width: 100%;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  text-align: left;
+  overflow-wrap: anywhere;
+  transition: transform 160ms var(--ease-out);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+.chip-new {
+  border-style: dashed;
+  color: var(--primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover:not([aria-pressed='true']) {
+    background: color-mix(in srgb, var(--primary) 8%, var(--bg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip:active {
+    transform: none;
+  }
+}
+
+.picker-new {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 24rem;
+  margin-top: 0.75rem;
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.picker-new input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Both columns share four rows (heading, meta, grid, group summary) through subgrid, so the
+   two grids start at the same height whatever sits above each one: the hint, the legend,
+   the touch switch, or nothing. */
 .grids {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: calc(var(--space) * 2);
+}
+
+.grids > section {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr); /* the grid scrolls instead of widening the column */
+  row-gap: 0; /* spacing inside a section comes from its content, not the section gap */
+}
+
+.grid-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* the legend and switch sit right above the grid */
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.grid-meta > p {
+  margin: 0;
 }
 
 .grids h2 {
@@ -159,29 +300,90 @@ fieldset.field > .row {
   margin-bottom: 0.25rem;
 }
 
+.mode-switch {
+  display: inline-flex;
+}
+
+.mode-switch button {
+  font-size: 0.875rem;
+}
+
+.mode-switch button:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.mode-switch button:last-child {
+  border-left: none;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.mode-switch button[aria-pressed='true'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+/* Scrolls in both directions inside its own box, so a 31-day, 24-hour grid stays on screen
+   (with the summary just below it) and the sticky labels below have something to stick to. */
 .slot-grid-scroll {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: min(65vh, 40rem);
 }
 
 .slot-grid {
   display: grid;
-  grid-template-columns: 3.5rem repeat(var(--cols), minmax(2.5rem, 1fr));
+  grid-template-columns: 3.5rem repeat(var(--cols), minmax(3rem, 4rem));
+  width: max-content; /* as wide as its columns, or the sticky time labels stop at the box's edge */
   user-select: none;
 }
 
+/* Date headers stick to the top and time labels to the left while the grid scrolls. */
+.slot-grid-corner,
+.slot-grid-date,
+.slot-grid-time {
+  position: sticky;
+  background: var(--bg);
+}
+
+.slot-grid-corner {
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+
 .slot-grid-date {
+  top: 0;
+  z-index: 2;
   font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
   padding-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-grid-date > span {
+  display: block;
+  white-space: nowrap;
 }
 
 .slot-grid-time {
+  left: 0;
+  z-index: 1;
   font-size: 0.75rem;
   color: var(--muted);
   text-align: right;
   padding-right: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-grid-time > span {
+  display: inline-block;
   transform: translateY(-0.5em); /* line the label up with the top of its row */
+}
+
+/* The first row's label can't move up: the header row would cover it. */
+.slot-grid-date + .slot-grid-time > span {
+  transform: none;
 }
 
 .slot {
@@ -189,6 +391,10 @@ fieldset.field > .row {
   border-right: 1px solid var(--border);
   border-bottom: 1px dotted var(--border);
   background: var(--bg);
+}
+
+.slot.hour-end {
+  border-bottom-style: solid;
 }
 
 .slot-grid-date + .slot,
@@ -210,8 +416,29 @@ fieldset.field > .row {
   outline-offset: -2px;
 }
 
+.heat-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.heat-legend-swatches {
+  display: flex;
+  width: 8rem;
+  height: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.heat-legend-swatches > span {
+  flex: 1;
+}
+
 .group-summary {
-  min-height: 3rem;
+  min-height: 5rem;
   font-size: 0.875rem;
 }
 
