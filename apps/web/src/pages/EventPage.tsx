@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
-import type { EventResponse } from '@flexmeet/shared';
+import type { EventResponse, ParticipantResponse } from '@flexmeet/shared';
+import { AvailabilityGrid } from '../components/AvailabilityGrid';
+import { GroupGrid } from '../components/GroupGrid';
+import { ParticipantPicker } from '../components/ParticipantPicker';
 import { formatYmd, minutesToTime } from '../lib/time';
 import { NotFoundPage } from './NotFoundPage';
 
@@ -52,8 +55,59 @@ function EventView({ slug }: { slug: string }) {
   }
 }
 
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
 function EventDetails({ event }: { event: EventResponse }) {
   const [copied, setCopied] = useState(false);
+  const [participants, setParticipants] = useState(event.participants);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  // Each save gets a number; responses from older saves are ignored if they arrive late.
+  const latestSave = useRef(0);
+
+  const me = participants.find((p) => p.id === selectedId) ?? null;
+  const mySlots = useMemo(() => new Set(me?.slots), [me]);
+
+  function replaceParticipant(updated: ParticipantResponse) {
+    setParticipants((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  }
+
+  function handleAdded(participant: ParticipantResponse) {
+    setParticipants((prev) =>
+      prev.some((p) => p.id === participant.id) ? prev : [...prev, participant],
+    );
+    setSelectedId(participant.id);
+  }
+
+  async function saveSlots(next: Set<string>) {
+    if (!me) return;
+    const previous = me;
+    const slots = [...next].sort();
+    const saveId = ++latestSave.current;
+
+    // Optimistic update: show the change now, roll back if the save fails.
+    replaceParticipant({ ...me, slots });
+    setSaveState('saving');
+    try {
+      const res = await fetch(
+        `/api/events/${encodeURIComponent(event.slug)}/participants/${me.id}/availability`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slots }),
+        },
+      );
+      if (!res.ok) throw new Error(`Save failed: ${res.status}`);
+      const saved = (await res.json()) as ParticipantResponse;
+      if (saveId !== latestSave.current) return;
+      replaceParticipant(saved);
+      setSaveState('saved');
+    } catch {
+      if (saveId !== latestSave.current) return;
+      replaceParticipant(previous);
+      setSaveState('error');
+    }
+  }
 
   async function copyLink() {
     await navigator.clipboard.writeText(window.location.href);
@@ -94,7 +148,49 @@ function EventDetails({ event }: { event: EventResponse }) {
         </dd>
       </dl>
 
-      {/* TODO: availability grid (dates × time slots) goes here. */}
+      <ParticipantPicker
+        slug={event.slug}
+        participants={participants}
+        selectedId={selectedId}
+        onSelect={(id) => {
+          setSelectedId(id);
+          setSaveState('idle');
+        }}
+        onAdded={handleAdded}
+      />
+
+      <div className="grids">
+        <section>
+          <h2>{me ? `${me.name}'s availability` : 'Your availability'}</h2>
+          {me ? (
+            <>
+              <p className="muted">
+                Click and drag to mark when you're free. <SaveStatus state={saveState} />
+              </p>
+              <AvailabilityGrid event={event} selected={mySlots} onChange={saveSlots} />
+            </>
+          ) : (
+            <p className="muted">Choose or add your name above to fill in your availability.</p>
+          )}
+        </section>
+        <section>
+          <h2>Group availability</h2>
+          <GroupGrid event={event} participants={participants} />
+        </section>
+      </div>
     </>
   );
+}
+
+function SaveStatus({ state }: { state: SaveState }) {
+  switch (state) {
+    case 'idle':
+      return null;
+    case 'saving':
+      return <span>Saving…</span>;
+    case 'saved':
+      return <span>Saved.</span>;
+    case 'error':
+      return <span className="error">Couldn't save. Your last change was undone.</span>;
+  }
 }
