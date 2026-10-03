@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { ParticipantResponse } from './participant.js';
 
 const MINUTES_PER_DAY = 24 * 60;
 
@@ -59,4 +60,5 @@ export interface EventResponse {
   durationMinutes: number | null;
   timezone: string;
   createdAt: string; // ISO timestamp
+  participants: ParticipantResponse[];
 }

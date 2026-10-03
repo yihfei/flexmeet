@@ -6,3 +6,5 @@ export interface HealthResponse {
 }
 
 export * from './event.js';
+export * from './participant.js';
+export * from './slots.js';
