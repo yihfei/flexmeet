@@ -2,11 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 import { createEventSchema, type CreateEventInput, type EventResponse } from '@flexmeet/shared';
-import { MINUTES_PER_DAY, timeToMinutes, todayYmd } from '../lib/time';
+import { DatePicker } from '../components/DatePicker';
+import { MINUTES_PER_DAY, timeToMinutes } from '../lib/time';
 
 type FieldErrors = Partial<Record<keyof CreateEventInput, string[]>>;
 
 const SLOT_OPTIONS = [15, 30] as const;
+const MAX_DATES = 31; // the schema's limit
 // Multiples of 30, so every option is valid for both slot sizes.
 const DURATION_OPTIONS = [30, 60, 90, 120];
 
@@ -16,7 +18,7 @@ const allTimeZones = Intl.supportedValuesOf('timeZone');
 export function CreateEventPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
-  const [dates, setDates] = useState<string[]>([todayYmd()]);
+  const [dates, setDates] = useState<string[]>([]);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('17:00');
   const [slotMinutes, setSlotMinutes] = useState<(typeof SLOT_OPTIONS)[number]>(30);
@@ -26,14 +28,6 @@ export function CreateEventPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  function updateDate(index: number, value: string) {
-    setDates((prev) => prev.map((d, i) => (i === index ? value : d)));
-  }
-
-  function removeDate(index: number) {
-    setDates((prev) => prev.filter((_, i) => i !== index));
-  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -108,26 +102,7 @@ export function CreateEventPage() {
 
         <fieldset className="field">
           <legend>Dates</legend>
-          {dates.map((date, index) => (
-            <div key={index} className="row">
-              <input
-                type="date"
-                aria-label={`Date ${index + 1}`}
-                value={date}
-                onChange={(e) => updateDate(index, e.target.value)}
-              />
-              {dates.length > 1 && (
-                <button type="button" onClick={() => removeDate(index)}>
-                  Remove
-                </button>
-              )}
-            </div>
-          ))}
-          {dates.length < 31 && (
-            <button type="button" onClick={() => setDates((prev) => [...prev, ''])}>
-              + Add date
-            </button>
-          )}
+          <DatePicker value={dates} onChange={setDates} max={MAX_DATES} />
           <FieldError messages={fieldErrors.dates} />
         </fieldset>
 
