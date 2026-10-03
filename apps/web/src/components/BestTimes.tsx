@@ -57,6 +57,9 @@ export function BestTimes({ event, participants, highlight, onHighlight }: BestT
   const index = useMemo(() => availabilityIndex(event, participants), [event, participants]);
   const results = useMemo(() => bestTimes(index, length), [index, length]);
   const total = participants.length;
+  // Bars are relative to the top suggestion, like the heatmap: the best time is always a
+  // full bar, and the text says how many of everyone that is.
+  const best = results[0]?.free.length ?? 0;
 
   // If nothing works for everyone, the longest shorter length that does.
   const everyoneAt = useMemo(() => {
@@ -129,7 +132,7 @@ export function BestTimes({ event, participants, highlight, onHighlight }: BestT
                       : `${w.free.length} of ${total} free`}
                   </span>
                   <span className="best-time-bar" aria-hidden="true">
-                    <span style={{ width: `${(w.free.length / total) * 100}%` }} />
+                    <span style={{ width: `${(w.free.length / best) * 100}%` }} />
                   </span>
                   <span className="best-time-missing">
                     {w.missing.length > 0 ? (
