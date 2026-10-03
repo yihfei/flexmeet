@@ -45,11 +45,25 @@ function EventView({ slug }: { slug: string }) {
 
   switch (state.status) {
     case 'loading':
-      return <p className="muted">Loading event…</p>;
+      return (
+        <div className="state">
+          <p className="muted">Loading event…</p>
+        </div>
+      );
     case 'not-found':
       return <NotFoundPage message="Event not found" />;
     case 'error':
-      return <p className="error">Couldn't load this event. Try refreshing.</p>;
+      return (
+        <div className="state card">
+          <h1>Couldn't load this event</h1>
+          <p className="muted">Something went wrong reaching the server. Try again in a moment.</p>
+          <p>
+            <button type="button" className="primary" onClick={() => window.location.reload()}>
+              Refresh
+            </button>
+          </p>
+        </div>
+      );
     case 'loaded':
       return <EventDetails event={state.event} />;
   }

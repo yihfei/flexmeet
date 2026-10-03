@@ -1,38 +1,49 @@
-/* FlexMeet visual identity. Everything below reads these tokens, so the look changes here. */
+/* FlexMeet visual identity: Swiss / utilitarian. White page, black ink and rules, square
+   corners, no shadows, a grotesk typeface, and one loud accent used only for actions and
+   focus. Everything below reads these tokens, so the look changes here. */
 
 :root {
-  /* Type: the system font (nothing to download), on a small scale. */
-  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Type: a grotesk (Helvetica where available), plus mono for times. */
+  --font: 'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.5rem;
-  --text-2xl: 2rem;
+  --text-2xl: 2.5rem;
 
-  /* Warm stone neutrals: the page is off-white, cards and inputs are white on top of it. */
-  --bg: #faf8f5;
+  /* Paper and ink. Hairlines for the grid, black rules for structure. */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-sunken: #f2efea;
-  --text: #1c1917;
-  --muted: #6b635b;
-  --border: #e6e1d9;
-  --border-strong: #d3ccc1;
+  --surface-sunken: #f2f2f2;
+  --text: #111111;
+  --muted: #666666;
+  --border: #e3e3e3;
+  --border-strong: #111111;
 
-  /* Teal-green primary: it means "free", so the heatmap and your marked slots read at a
-     glance. White text on it passes WCAG AA. */
-  --primary: #0f766e;
-  --primary-hover: #0b625b;
-  --primary-text: #ffffff;
-  --primary-soft: color-mix(in srgb, var(--primary) 10%, var(--surface));
-  --primary-ring: color-mix(in srgb, var(--primary) 28%, transparent);
-  --error: #b42318;
+  /* International orange: actions, focus and "today" only. Black text on it is 5.7:1;
+     orange text on white would fail, so it is never used for text. */
+  --accent: #ff4f00;
+  --accent-hover: #e84800;
+  --accent-text: #111111;
 
-  --radius: 8px; /* buttons and inputs */
-  --radius-lg: 12px; /* cards */
-  --shadow-sm: 0 1px 2px rgb(28 25 23 / 0.06);
-  --shadow-md: 0 1px 2px rgb(28 25 23 / 0.04), 0 6px 20px -6px rgb(28 25 23 / 0.1);
+  /* Availability is the accent: your free slots are orange, and the group heatmap runs
+     from pale orange to full orange. Selections (chosen names and dates, the touch switch)
+     are ink, so "who's free" and "what I picked" never look alike. */
+  --free: var(--accent);
+  --mark: #111111;
+  --mark-text: #ffffff;
+  --faint: #c4c4c4; /* past days, hour lines */
+
+  --error: #c8102e;
+  --success: #008a3e;
+
+  --radius: 0;
   --space: 1rem;
+  /* Form-like pages are 40rem wide; the event page needs 64rem for two grids side by side.
+     The header follows the same width, so the logo always lines up with the content. */
+  --page-width: 40rem;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI that responds to the user */
 
   font-family: var(--font);
@@ -51,39 +62,60 @@ body {
   margin: 0;
 }
 
+:root:has(.event-page) {
+  --page-width: 64rem;
+}
+
 main {
-  max-width: 40rem;
+  max-width: var(--page-width);
   margin: 0 auto;
   padding: var(--space);
 }
 
 h1,
 h2 {
-  line-height: 1.2;
+  line-height: 1.1;
   text-wrap: balance;
 }
 
 h1 {
-  margin: calc(var(--space) * 1.5) 0 var(--space);
-  font-size: var(--text-2xl);
+  margin: calc(var(--space) * 2) 0 var(--space);
+  font-size: clamp(1.75rem, 5vw + 0.5rem, var(--text-2xl)); /* every page title shrinks on phones */
   font-weight: 700;
-  letter-spacing: -0.025em; /* large type looks loose at default tracking */
+  letter-spacing: -0.035em; /* big grotesk type wants tight tracking */
 }
 
 h2 {
   font-size: var(--text-lg);
-  font-weight: 650;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
-a {
-  color: var(--primary);
-  text-underline-offset: 2px;
+/* Links are ink with an orange underline: the accent marks them without orange text. */
+a,
+.link-button {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Small uppercase labels with open tracking: form labels, the calendar's weekdays. */
+.field label,
+.field legend,
+.picker-label,
+.cal-dow,
+.cal-week {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* Header */
@@ -93,10 +125,9 @@ a {
   justify-content: space-between;
   align-items: center;
   gap: var(--space);
-  /* Lines the brand up with the 64rem event page on wide screens. */
-  padding: 0.75rem max(var(--space), calc((100% - 64rem) / 2 + var(--space)));
+  padding: 0.875rem max(var(--space), calc((100% - var(--page-width)) / 2 + var(--space)));
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border-strong);
   font-size: var(--text-sm);
 }
 
@@ -106,25 +137,18 @@ a {
   gap: 0.5rem;
   font-size: var(--text-lg);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: inherit;
   text-decoration: none;
 }
 
-/* The mark: four slots of a heatmap, from nobody free to everyone free. */
+/* The mark: one orange square. */
 .brand::before {
   content: '';
-  width: 1.375rem;
-  height: 1.375rem;
+  width: 0.875rem;
+  height: 0.875rem;
   flex-shrink: 0;
-  border-radius: 6px;
-  background:
-    linear-gradient(var(--primary) 0 0) 0 0 / 46% 46% no-repeat,
-    linear-gradient(color-mix(in srgb, var(--primary) 55%, var(--surface)) 0 0) 100% 0 / 46% 46%
-      no-repeat,
-    linear-gradient(color-mix(in srgb, var(--primary) 25%, var(--surface)) 0 0) 0 100% / 46% 46%
-      no-repeat,
-    linear-gradient(var(--primary) 0 0) 100% 100% / 46% 46% no-repeat;
+  background: var(--accent);
 }
 
 .api-status {
@@ -132,6 +156,7 @@ a {
   align-items: center;
   gap: 0.375rem;
   color: var(--muted);
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
 
@@ -139,12 +164,11 @@ a {
   content: '';
   width: 0.5rem;
   height: 0.5rem;
-  border-radius: 50%;
-  background: var(--border-strong);
+  background: var(--muted);
 }
 
 .api-status[data-state='ok']::before {
-  background: #16a34a;
+  background: var(--success);
 }
 
 .api-status[data-state='error'] {
@@ -155,14 +179,13 @@ a {
   background: var(--error);
 }
 
-/* Cards */
+/* Sections: a heavy rule on top instead of a floating box. The create form, the event
+   page's "who are you?" step and the page states all use it. */
 
-.card {
-  padding: calc(var(--space) * 1.25);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+.card,
+.picker {
+  padding-top: var(--space);
+  border-top: 2px solid var(--border-strong);
 }
 
 /* Forms */
@@ -182,12 +205,12 @@ input::placeholder {
   color: color-mix(in srgb, var(--muted) 75%, transparent);
 }
 
-/* Text fields show focus with their border and a soft ring rather than an outline. */
+/* Text fields show focus as a 2px orange border, inside their box. */
 input:focus-visible,
 select:focus-visible {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-ring);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 select {
@@ -202,9 +225,8 @@ button {
 }
 
 button {
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
   transition:
     transform 160ms var(--ease-out),
     background-color 150ms ease,
@@ -216,14 +238,19 @@ button:active:not(:disabled) {
   transform: scale(0.97);
 }
 
+/* Hover inverts a button to ink, like a pressed key. */
 @media (hover: hover) and (pointer: fine) {
-  button:hover:not(:disabled) {
-    background: var(--surface-sunken);
+  button:hover:not(:disabled),
+  a.button:hover {
+    background: var(--text);
+    color: var(--surface);
   }
 
-  button.primary:hover:not(:disabled) {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
+  .primary:hover:not(:disabled),
+  a.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--accent-text);
   }
 }
 
@@ -233,16 +260,35 @@ button:active:not(:disabled) {
   }
 }
 
+/* A link that looks like a button, for actions that navigate. */
+a.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 150ms ease;
+}
+
+a.button:active {
+  transform: scale(0.97);
+}
+
 button:disabled {
   opacity: 0.6;
   cursor: default;
 }
 
-button.primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-text);
-  font-weight: 600;
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 700;
 }
 
 fieldset {
@@ -262,12 +308,6 @@ legend {
   margin-bottom: calc(var(--space) * 1.25);
 }
 
-.field label,
-.field legend {
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -282,6 +322,30 @@ legend {
 
 .row > .field {
   flex: 1;
+}
+
+/* Page states: not found, couldn't load, loading. Flush left like everything else, at the
+   same height as a page's title, so switching from loading to loaded doesn't jump. */
+
+.state {
+  margin-top: calc(var(--space) * 2);
+}
+
+.state.card {
+  padding-top: calc(var(--space) * 1.5);
+}
+
+.state h1 {
+  margin: 0 0 0.5rem;
+  font-size: var(--text-xl);
+}
+
+.state p {
+  margin: 0 0 calc(var(--space) * 1.25);
+}
+
+.state p:last-child {
+  margin-bottom: 0;
 }
 
 /* Text helpers */
@@ -329,7 +393,8 @@ legend {
 }
 
 .cal-title {
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 /* The calendar's small controls drop the regular button chrome. */
@@ -349,7 +414,7 @@ legend {
   height: 2.25rem;
   font-size: var(--text-xl);
   line-height: 1;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .cal-nav:disabled {
@@ -375,8 +440,6 @@ legend {
 
 .cal-dow,
 .cal-week {
-  font-size: var(--text-xs);
-  font-weight: 600;
   color: var(--muted);
 }
 
@@ -385,14 +448,16 @@ legend {
 }
 
 .cal-week {
-  border-radius: var(--radius);
-  font-size: 0.6875rem;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .cal-dow[aria-pressed='true'],
 .cal-week[aria-pressed='true'] {
-  color: var(--primary);
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .cal-dow:disabled,
@@ -402,8 +467,8 @@ legend {
 
 .cal-day {
   aspect-ratio: 1;
-  border-radius: var(--radius);
   font-size: var(--text-sm);
+  font-weight: 500; /* only today is bold */
   font-variant-numeric: tabular-nums;
   /* Press feedback only: dates fill in dozens of times while you pick, so colour is instant. */
   transition: transform 160ms var(--ease-out);
@@ -414,19 +479,19 @@ legend {
 }
 
 .cal-day:disabled {
-  color: var(--border-strong);
+  color: var(--faint);
   opacity: 1;
 }
 
+/* Today: an orange bar along the bottom, which stays visible when it's selected too. */
 .cal-day-today {
   font-weight: 700;
-  box-shadow: inset 0 0 0 1px var(--border-strong);
+  box-shadow: inset 0 -3px 0 var(--accent);
 }
 
 .cal-day[aria-pressed='true'] {
-  background: var(--primary);
-  color: var(--primary-text);
-  box-shadow: none;
+  background: var(--mark);
+  color: var(--mark-text);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -438,11 +503,13 @@ legend {
   }
 
   .cal-day:hover:not(:disabled, [aria-pressed='true']) {
-    background: var(--primary-soft);
+    background: var(--surface-sunken);
+    color: var(--text);
   }
 
   .cal-day[aria-pressed='true']:hover {
-    background: var(--primary-hover);
+    background: var(--mark);
+    color: var(--mark-text);
   }
 }
 
@@ -458,20 +525,9 @@ legend {
 
 /* Event page */
 
-/* Two grids side by side need more room than the 40rem form pages. */
-main:has(.event-page) {
-  max-width: 64rem;
-}
-
 .event-page h1 {
   margin-bottom: 0;
-  font-size: clamp(
-    1.5rem,
-    4vw + 0.5rem,
-    2rem
-  ); /* a 100-character title stays a few lines on phones */
-  text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: anywhere; /* a long unbroken word in a title can't widen the page */
 }
 
 .share-link {
@@ -491,12 +547,11 @@ main:has(.event-page) {
 
 .picker-label {
   margin: 0;
-  font-weight: 600;
 }
 
 .picker-hint {
   margin: 0.25rem 0 0;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .picker-identity {
@@ -513,10 +568,8 @@ main:has(.event-page) {
   padding: 0;
   border: none;
   background: none;
-  box-shadow: none;
-  color: var(--primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: var(--text);
+  font-weight: 400;
 }
 
 .picker-filter {
@@ -539,33 +592,21 @@ main:has(.event-page) {
 .chip {
   min-height: 0;
   max-width: 100%;
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
+  padding: 0.375rem 0.75rem;
   font-size: var(--text-sm);
+  font-weight: 500;
   text-align: left;
   overflow-wrap: anywhere;
 }
 
 .chip[aria-pressed='true'] {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-text);
+  background: var(--mark);
+  border-color: var(--mark);
+  color: var(--mark-text);
 }
 
 .chip-new {
   border-style: dashed;
-  color: var(--primary);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .chip:hover:not([aria-pressed='true'], :disabled) {
-    background: var(--primary-soft);
-    border-color: color-mix(in srgb, var(--primary) 35%, var(--border-strong));
-  }
-
-  .chip[aria-pressed='true']:hover {
-    background: var(--primary-hover);
-  }
 }
 
 .picker-new {
@@ -598,6 +639,8 @@ main:has(.event-page) {
 }
 
 .grids > section {
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--border-strong); /* a rule over each grid, like a table head */
   display: grid;
   grid-row: span 4;
   grid-template-rows: subgrid;
@@ -616,38 +659,32 @@ main:has(.event-page) {
 
 .grid-meta > p {
   margin: 0;
+  font-size: var(--text-sm); /* helper text is the same size everywhere */
 }
 
 .grids h2 {
-  margin-bottom: 0.25rem;
+  margin: 0 0 0.25rem;
 }
 
-/* A segmented control: the chosen mode is a raised white tab in a sunken track. */
+/* A segmented control: two halves of one black box; the chosen one is filled with ink. */
 .mode-switch {
   display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  background: var(--surface-sunken);
-  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
 }
 
 .mode-switch button,
 .mode-switch button:hover:not(:disabled) {
   min-height: 0;
-  padding: 0.3rem 0.75rem;
+  padding: 0.375rem 0.75rem;
   border: none;
-  border-radius: calc(var(--radius) - 2px);
-  background: transparent;
-  box-shadow: none;
-  color: var(--muted);
+  background: var(--surface);
+  color: var(--text);
   font-size: var(--text-sm);
 }
 
 .mode-switch button[aria-pressed='true'] {
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-  color: var(--text);
-  font-weight: 600;
+  background: var(--mark);
+  color: var(--mark-text);
 }
 
 /* Scrolls in both directions inside its own box, so a 31-day, 24-hour grid stays on screen
@@ -657,11 +694,8 @@ main:has(.event-page) {
   max-width: 100%;
   overflow: auto;
   max-height: min(65vh, 40rem);
-  padding: 0.5rem 0.5rem 0 0; /* breathing room inside the card for the corner and edges */
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-strong);
 }
 
 .slot-grid {
@@ -688,10 +722,13 @@ main:has(.event-page) {
 .slot-grid-date {
   top: 0;
   z-index: 2;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   text-align: center;
-  padding-bottom: 0.25rem;
+  padding: 0.375rem 0 0.25rem;
+  border-bottom: 1px solid var(--border-strong);
   font-variant-numeric: tabular-nums;
 }
 
@@ -703,10 +740,11 @@ main:has(.event-page) {
 .slot-grid-time {
   left: 0;
   z-index: 1;
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   color: var(--muted);
   text-align: right;
-  padding-right: 0.4rem;
+  padding-right: 0.5rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -728,7 +766,7 @@ main:has(.event-page) {
 }
 
 .slot.hour-end {
-  border-bottom-style: solid;
+  border-bottom: 1px solid var(--faint); /* hour lines a step darker than the half-hour hairlines */
 }
 
 .slot-grid-date + .slot,
@@ -742,11 +780,12 @@ main:has(.event-page) {
 }
 
 .slot.selected {
-  background: var(--primary);
+  background: var(--free);
 }
 
+/* Ink outline: it shows on white, pale orange and full orange cells alike. */
 .slot.hovered {
-  outline: 2px solid color-mix(in srgb, var(--text) 70%, transparent);
+  outline: 2px solid var(--text);
   outline-offset: -2px;
 }
 
@@ -754,7 +793,7 @@ main:has(.event-page) {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 
@@ -762,9 +801,7 @@ main:has(.event-page) {
   display: flex;
   width: 8rem;
   height: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  overflow: hidden;
+  border: 1px solid var(--border-strong);
 }
 
 .heat-legend-swatches > span {
