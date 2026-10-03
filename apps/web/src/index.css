@@ -333,12 +333,6 @@ legend {
   margin-bottom: 0;
 }
 
-.time-summary {
-  min-height: 1.5em;
-  margin: 0.5rem 0 0;
-  font-size: var(--text-sm);
-}
-
 /* The app's dropdown with a mouse or trackpad (touch uses the native select): a trigger
    that looks like a select, opening a list of at most 6 rows that scrolls. */
 

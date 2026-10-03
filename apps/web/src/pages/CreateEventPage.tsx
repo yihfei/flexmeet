@@ -184,10 +184,6 @@ export function CreateEventPage() {
               <FieldError messages={fieldErrors.endMinute} />
             </div>
           </div>
-          {/* What the window means, on a reserved line so changing it never moves the form. */}
-          <p className="muted time-summary">
-            {describeWindow(endMinute - startMinute, slotMinutes)}
-          </p>
         </fieldset>
 
         <div className="row">
@@ -248,12 +244,4 @@ function everySlot(from: number, to: number, step: number): number[] {
   const minutes: number[] = [];
   for (let m = from; m <= to; m += step) minutes.push(m);
   return minutes;
-}
-
-// 480 minutes in 30-minute slots -> '8 hours a day · 16 slots of 30 min'
-function describeWindow(minutes: number, slotMinutes: number): string {
-  const hours = minutes / 60;
-  const length = minutes < 60 ? `${minutes} minutes` : `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
-  const slots = minutes / slotMinutes;
-  return `${length} a day · ${slots} ${slots === 1 ? 'slot' : 'slots'} of ${slotMinutes} min`;
 }
