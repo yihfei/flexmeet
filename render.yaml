@@ -1,0 +1,21 @@
+# Render Blueprint: FlexMeet as one free web service, built from the root Dockerfile.
+# The database is on Neon (Render's free Postgres is deleted after 30 days).
+# In Render: New → Blueprint → this repo, then paste the two Neon connection strings.
+services:
+  - type: web
+    name: flexmeet
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit # redeploy on every push to main
+    healthCheckPath: /api/health
+    envVars:
+      # Neon's pooled connection string: used by the app.
+      - key: DATABASE_URL
+        sync: false
+      # Neon's direct connection string: used by `prisma migrate deploy` on start.
+      - key: DIRECT_DATABASE_URL
+        sync: false

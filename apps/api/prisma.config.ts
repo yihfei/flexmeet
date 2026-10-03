@@ -14,6 +14,9 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL ?? '',
+    // Migrations need a direct connection: a pooled one (like Neon's default URL, which goes
+    // through PgBouncer) can't hold the lock `migrate deploy` takes. The app itself keeps
+    // using DATABASE_URL, which may be pooled. Locally there is only DATABASE_URL.
+    url: process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL ?? '',
   },
 });

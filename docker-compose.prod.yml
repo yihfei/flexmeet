@@ -1,4 +1,4 @@
-# Production-like stack: db + api + web (nginx). Run with:
+# Production-like stack: db + app (API serving the built site). Run with:
 #   docker compose -f docker-compose.prod.yml up --build
 # Separate project name so it doesn't replace the dev db container/volume.
 name: flexmeet-prod
@@ -19,27 +19,20 @@ services:
       timeout: 3s
       retries: 10
 
-  api:
+  # The API and the built site in one image (root Dockerfile), the same image Render runs.
+  app:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-flexmeet}:${POSTGRES_PASSWORD:-flexmeet}@db:5432/${POSTGRES_DB:-flexmeet}
       PORT: 3000
+    ports:
+      - '8080:3000'
     depends_on:
       db:
         condition: service_healthy
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    restart: unless-stopped
-    ports:
-      - '8080:80'
-    depends_on:
-      - api
 
 volumes:
   pgdata:
