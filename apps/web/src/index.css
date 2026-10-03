@@ -1,0 +1,143 @@
+/* Minimal base styles. A real design pass comes once the availability grid exists. */
+
+:root {
+  --font: system-ui, -apple-system, sans-serif;
+  --text: #1a1a1a;
+  --muted: #6b6b6b;
+  --bg: #ffffff;
+  --border: #d0d0d0;
+  --primary: #2563eb;
+  --primary-text: #ffffff;
+  --error: #c62828;
+  --radius: 6px;
+  --space: 1rem;
+
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space);
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Forms */
+
+input,
+select,
+button {
+  font: inherit;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: var(--space);
+}
+
+.field label,
+.field legend {
+  font-weight: 600;
+}
+
+.field fieldset > * + *,
+fieldset.field > .row {
+  margin-bottom: 0.5rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space);
+  align-items: flex-start;
+}
+
+.row > .field {
+  flex: 1;
+}
+
+/* Text helpers */
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  color: var(--error);
+  margin: 0;
+}
+
+/* Event details */
+
+.details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem var(--space);
+}
+
+.details dt {
+  font-weight: 600;
+}
+
+.details dd {
+  margin: 0;
+}
+
+.date-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
