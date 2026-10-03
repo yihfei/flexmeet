@@ -919,8 +919,7 @@ legend {
 /* Scrolls in both directions inside its own box, so a 31-day, 24-hour grid stays on screen
    (with the summary just below it) and the sticky labels below have something to stick to. */
 .slot-grid-scroll {
-  width: fit-content; /* the card hugs the grid; a 2-date event isn't a wide empty box */
-  max-width: 100%;
+  max-width: 100%; /* full width of its column; the grid inside fills it */
   overflow: auto;
   max-height: min(65vh, 40rem);
   /* Room between the last day / last row and the box's border. Top and left stay at 0, where
@@ -932,8 +931,14 @@ legend {
 
 .slot-grid {
   display: grid;
-  grid-template-columns: 3.5rem repeat(var(--cols), minmax(3rem, 4rem));
-  width: max-content; /* as wide as its columns, or the sticky time labels stop at the box's edge */
+  /* Day columns share the box's width, so a 1- or 3-day event fills it like a long one does.
+     Past what fits at 4rem each (room for "20 DEC" with space either side), the box scrolls
+     sideways instead. */
+  grid-template-columns: 3.5rem repeat(var(--cols), minmax(4rem, 1fr));
+  /* At least as wide as the box, and as wide as its columns when they need more (otherwise
+     the sticky time labels would stop at the box's edge while scrolling). */
+  width: max-content;
+  min-width: 100%;
   user-select: none;
 }
 
