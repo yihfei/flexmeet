@@ -14,16 +14,20 @@ function isValidTimeZone(tz: string): boolean {
 
 export const createEventSchema = z
   .object({
-    title: z.string().trim().min(1, 'Title is required').max(100),
+    title: z
+      .string()
+      .trim()
+      .min(1, 'Title is required')
+      .max(100, 'Keep the title to 100 characters or fewer'),
     dates: z
-      .array(z.iso.date())
+      .array(z.iso.date('Pick a valid date'))
       .min(1, 'Pick at least one date')
       .max(31, 'Pick at most 31 dates')
       .refine((dates) => new Set(dates).size === dates.length, 'Dates must be unique'),
-    startMinute: z.int().min(0).max(MINUTES_PER_DAY),
-    endMinute: z.int().min(0).max(MINUTES_PER_DAY),
-    slotMinutes: z.literal([15, 30]),
-    durationMinutes: z.int().positive().optional(),
+    startMinute: z.int('Pick a start time').min(0).max(MINUTES_PER_DAY),
+    endMinute: z.int('Pick an end time').min(0).max(MINUTES_PER_DAY),
+    slotMinutes: z.literal([15, 30], 'Slot size must be 15 or 30 minutes'),
+    durationMinutes: z.int().positive('Meeting length must be positive').optional(),
     timezone: z.string().refine(isValidTimeZone, 'Unknown timezone'),
   })
   .superRefine((event, ctx) => {
