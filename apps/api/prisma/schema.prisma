@@ -29,7 +29,7 @@ model Participant {
   id        Int      @id @default(autoincrement())
   eventId   Int
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  name      String   @db.VarChar(50)
+  name      String   @db.Citext // case-insensitive, so "jo" finds "Jo"; length is capped at 50 by joinEventSchema
   slots     String[] // slot keys in the event's timezone, e.g. "2026-10-10T09:30"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
