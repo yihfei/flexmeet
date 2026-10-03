@@ -11,10 +11,19 @@ export function ApiStatus() {
       .catch(() => setHealth('unreachable'));
   }, []);
 
-  if (health === null) return <span className="muted">Checking API…</span>;
-  if (health === 'unreachable') return <span className="error">API unreachable</span>;
+  if (health === null) return <span className="api-status">Checking API…</span>;
+  if (health === 'unreachable') {
+    return (
+      <span className="api-status" data-state="error">
+        API unreachable
+      </span>
+    );
+  }
   return (
-    <span className={health.status === 'ok' && health.db === 'ok' ? 'muted' : 'error'}>
+    <span
+      className="api-status"
+      data-state={health.status === 'ok' && health.db === 'ok' ? 'ok' : 'error'}
+    >
       API: {health.status} / DB: {health.db}
     </span>
   );

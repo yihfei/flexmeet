@@ -12,7 +12,7 @@ interface GroupGridProps {
 // 0% so a single free person is still visible against an empty cell.
 function heatColor(count: number, max: number): string {
   const percent = 15 + (count / max) * 85;
-  return `color-mix(in srgb, var(--primary) ${percent}%, var(--bg))`;
+  return `color-mix(in srgb, var(--primary) ${percent}%, var(--surface))`;
 }
 
 // Heatmap of how many people are free in each slot. Hover a cell to see who, or tap/click
@@ -106,7 +106,7 @@ function HeatLegend({ max, total }: { max: number; total: number }) {
         {Array.from({ length: max + 1 }, (_, count) => (
           <span
             key={count}
-            style={{ background: count === 0 ? 'var(--bg)' : heatColor(count, max) }}
+            style={{ background: count === 0 ? 'var(--surface)' : heatColor(count, max) }}
           />
         ))}
       </div>

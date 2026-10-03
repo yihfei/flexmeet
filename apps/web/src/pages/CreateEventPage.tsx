@@ -91,7 +91,7 @@ export function CreateEventPage() {
     <>
       <h1>Create an event</h1>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="card" onSubmit={handleSubmit} noValidate>
         {formError && <p className="error">{formError}</p>}
 
         <div className="field">

@@ -1,22 +1,46 @@
-/* Minimal base styles. A real design pass comes once the availability grid exists. */
+/* FlexMeet visual identity. Everything below reads these tokens, so the look changes here. */
 
 :root {
-  --font: system-ui, -apple-system, sans-serif;
-  --text: #1a1a1a;
-  --muted: #6b6b6b;
-  --bg: #ffffff;
-  --border: #d0d0d0;
-  --primary: #2563eb;
+  /* Type: the system font (nothing to download), on a small scale. */
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+
+  /* Warm stone neutrals: the page is off-white, cards and inputs are white on top of it. */
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --surface-sunken: #f2efea;
+  --text: #1c1917;
+  --muted: #6b635b;
+  --border: #e6e1d9;
+  --border-strong: #d3ccc1;
+
+  /* Teal-green primary: it means "free", so the heatmap and your marked slots read at a
+     glance. White text on it passes WCAG AA. */
+  --primary: #0f766e;
+  --primary-hover: #0b625b;
   --primary-text: #ffffff;
-  --error: #c62828;
-  --radius: 6px;
+  --primary-soft: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  --primary-ring: color-mix(in srgb, var(--primary) 28%, transparent);
+  --error: #b42318;
+
+  --radius: 8px; /* buttons and inputs */
+  --radius-lg: 12px; /* cards */
+  --shadow-sm: 0 1px 2px rgb(28 25 23 / 0.06);
+  --shadow-md: 0 1px 2px rgb(28 25 23 / 0.04), 0 6px 20px -6px rgb(28 25 23 / 0.1);
   --space: 1rem;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI that responds to the user */
 
   font-family: var(--font);
+  font-size: var(--text-base);
   color: var(--text);
   background: var(--bg);
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -33,20 +57,112 @@ main {
   padding: var(--space);
 }
 
+h1,
+h2 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  margin: calc(var(--space) * 1.5) 0 var(--space);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.025em; /* large type looks loose at default tracking */
+}
+
+h2 {
+  font-size: var(--text-lg);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--primary);
+  text-underline-offset: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Header */
+
 .site-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space);
+  gap: var(--space);
+  /* Lines the brand up with the 64rem event page on wide screens. */
+  padding: 0.75rem max(var(--space), calc((100% - 64rem) / 2 + var(--space)));
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .brand {
-  font-size: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-lg);
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: inherit;
   text-decoration: none;
+}
+
+/* The mark: four slots of a heatmap, from nobody free to everyone free. */
+.brand::before {
+  content: '';
+  width: 1.375rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background:
+    linear-gradient(var(--primary) 0 0) 0 0 / 46% 46% no-repeat,
+    linear-gradient(color-mix(in srgb, var(--primary) 55%, var(--surface)) 0 0) 100% 0 / 46% 46%
+      no-repeat,
+    linear-gradient(color-mix(in srgb, var(--primary) 25%, var(--surface)) 0 0) 0 100% / 46% 46%
+      no-repeat,
+    linear-gradient(var(--primary) 0 0) 100% 100% / 46% 46% no-repeat;
+}
+
+.api-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.api-status::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.api-status[data-state='ok']::before {
+  background: #16a34a;
+}
+
+.api-status[data-state='error'] {
+  color: var(--error);
+}
+
+.api-status[data-state='error']::before {
+  background: var(--error);
+}
+
+/* Cards */
+
+.card {
+  padding: calc(var(--space) * 1.25);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Forms */
@@ -55,19 +171,70 @@ input,
 select,
 button {
   font: inherit;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius);
-  background: var(--bg);
+  background: var(--surface);
   color: inherit;
+}
+
+input::placeholder {
+  color: color-mix(in srgb, var(--muted) 75%, transparent);
+}
+
+/* Text fields show focus with their border and a soft ring rather than an outline. */
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
 select {
   max-width: 100%; /* a select is as wide as its longest option, e.g. a 50-character name */
 }
 
+/* One control height, so selects, text, date and time inputs and buttons line up in a row. */
+input,
+select,
 button {
+  min-height: 2.75rem;
+}
+
+.field > button {
+  align-self: flex-start; /* "+ Add date" is a small action, not a full-width bar */
+}
+
+button {
+  font-weight: 500;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+/* Pressing gives instant feedback that the button heard you. */
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:hover:not(:disabled) {
+    background: var(--surface-sunken);
+  }
+
+  button.primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 button:disabled {
@@ -79,6 +246,7 @@ button.primary {
   background: var(--primary);
   border-color: var(--primary);
   color: var(--primary-text);
+  font-weight: 600;
 }
 
 fieldset {
@@ -90,12 +258,13 @@ fieldset {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: var(--space);
+  gap: 0.375rem;
+  margin-bottom: calc(var(--space) * 1.25);
 }
 
 .field label,
 .field legend {
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -129,6 +298,7 @@ fieldset.field > .row {
 .error {
   color: var(--error);
   margin: 0;
+  font-size: var(--text-sm);
 }
 
 /* Event page */
@@ -182,10 +352,13 @@ main:has(.event-page) {
   overflow-wrap: anywhere;
 }
 
-.link-button {
+.link-button,
+.link-button:hover:not(:disabled) {
+  min-height: 0;
   padding: 0;
   border: none;
   background: none;
+  box-shadow: none;
   color: var(--primary);
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -209,17 +382,13 @@ main:has(.event-page) {
 }
 
 .chip {
+  min-height: 0;
   max-width: 100%;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   text-align: left;
   overflow-wrap: anywhere;
-  transition: transform 160ms var(--ease-out);
-}
-
-.chip:active {
-  transform: scale(0.97);
 }
 
 .chip[aria-pressed='true'] {
@@ -234,14 +403,13 @@ main:has(.event-page) {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .chip:hover:not([aria-pressed='true']) {
-    background: color-mix(in srgb, var(--primary) 8%, var(--bg));
+  .chip:hover:not([aria-pressed='true'], :disabled) {
+    background: var(--primary-soft);
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--border-strong));
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .chip:active {
-    transform: none;
+  .chip[aria-pressed='true']:hover {
+    background: var(--primary-hover);
   }
 }
 
@@ -296,38 +464,49 @@ main:has(.event-page) {
 }
 
 .grids h2 {
-  font-size: 1.1rem;
   margin-bottom: 0.25rem;
 }
 
+/* A segmented control: the chosen mode is a raised white tab in a sunken track. */
 .mode-switch {
   display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius);
 }
 
-.mode-switch button {
-  font-size: 0.875rem;
-}
-
-.mode-switch button:first-child {
-  border-radius: var(--radius) 0 0 var(--radius);
-}
-
-.mode-switch button:last-child {
-  border-left: none;
-  border-radius: 0 var(--radius) var(--radius) 0;
+.mode-switch button,
+.mode-switch button:hover:not(:disabled) {
+  min-height: 0;
+  padding: 0.3rem 0.75rem;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 .mode-switch button[aria-pressed='true'] {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-text);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* Scrolls in both directions inside its own box, so a 31-day, 24-hour grid stays on screen
    (with the summary just below it) and the sticky labels below have something to stick to. */
 .slot-grid-scroll {
+  width: fit-content; /* the card hugs the grid; a 2-date event isn't a wide empty box */
+  max-width: 100%;
   overflow: auto;
   max-height: min(65vh, 40rem);
+  padding: 0.5rem 0.5rem 0 0; /* breathing room inside the card for the corner and edges */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .slot-grid {
@@ -342,7 +521,7 @@ main:has(.event-page) {
 .slot-grid-date,
 .slot-grid-time {
   position: sticky;
-  background: var(--bg);
+  background: var(--surface);
 }
 
 .slot-grid-corner {
@@ -390,7 +569,7 @@ main:has(.event-page) {
   height: 1.25rem;
   border-right: 1px solid var(--border);
   border-bottom: 1px dotted var(--border);
-  background: var(--bg);
+  background: var(--surface);
 }
 
 .slot.hour-end {
@@ -412,7 +591,7 @@ main:has(.event-page) {
 }
 
 .slot.hovered {
-  outline: 2px solid var(--text);
+  outline: 2px solid color-mix(in srgb, var(--text) 70%, transparent);
   outline-offset: -2px;
 }
 
@@ -429,7 +608,7 @@ main:has(.event-page) {
   width: 8rem;
   height: 0.75rem;
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: 999px;
   overflow: hidden;
 }
 
@@ -439,7 +618,7 @@ main:has(.event-page) {
 
 .group-summary {
   min-height: 5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .group-summary p {
