@@ -21,6 +21,7 @@ A when2meet clone that the owner builds to practise TypeScript and full-stack de
 - **TypeScript is pinned to 6.0.** typescript-eslint doesn't support TS 7 yet.
 - **`prisma` is in `dependencies`, not devDependencies.** The API container runs `prisma migrate deploy` when it starts.
 - **One `Dockerfile`, at the repo root** (it needs the lockfile, `tsconfig.base.json` and `packages/shared`). Any new root file the build needs must be copied in it.
+- **No animations or transitions in the UI.** The owner wants FlexMeet snappy and no-frills: state changes are instant (no press scale, fades, slides or easing). Feedback comes from instant state (hover, selected, focus) and the haptic tick on touch hold-to-drag. Don't add motion back, even when a design skill suggests it.
 - **`docker-compose.prod.yml` sets `name: flexmeet-prod`** so it never replaces the dev db container or volume.
 - **Production shape:** one container. Express serves `/api` and, when `WEB_DIST` is set (it is in the image), the built SPA: `/assets` cached immutable, other paths fall back to `index.html` (no-cache). Deployed free on Render (`render.yaml`, Docker runtime) with Postgres on Neon. The target stays self-hosted containers, not BaaS.
 - **Two database URLs in production.** `DATABASE_URL` is Neon's pooled URL, used by the app. `DIRECT_DATABASE_URL` is the direct one, used by `prisma migrate deploy` (via `prisma.config.ts`), because a PgBouncer-pooled connection can't hold the migration lock. Locally only `DATABASE_URL` is set.

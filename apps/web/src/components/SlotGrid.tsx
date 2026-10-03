@@ -1,4 +1,4 @@
-import { Fragment, type CSSProperties, type HTMLAttributes } from 'react';
+import { Fragment, type CSSProperties, type HTMLAttributes, type Ref } from 'react';
 import { slotKey, slotStartMinutes, type EventGrid } from '@flexmeet/shared';
 import type { Cell } from '../lib/grid';
 import { formatYmdParts, minutesToTime } from '../lib/time';
@@ -7,16 +7,25 @@ interface SlotGridProps extends HTMLAttributes<HTMLDivElement> {
   event: EventGrid;
   cellClassName?: (key: string) => string;
   cellStyle?: (key: string) => CSSProperties | undefined;
+  ref?: Ref<HTMLDivElement>; // the grid itself (inside its scroll box)
 }
 
 // The dates × times layout shared by the editable grid and the group grid. The parent
 // handles interaction through the container's event handlers (passed in via ...rest).
-export function SlotGrid({ event, cellClassName, cellStyle, className, ...rest }: SlotGridProps) {
+export function SlotGrid({
+  event,
+  cellClassName,
+  cellStyle,
+  className,
+  ref,
+  ...rest
+}: SlotGridProps) {
   const minutes = slotStartMinutes(event);
 
   return (
     <div className="slot-grid-scroll">
       <div
+        ref={ref}
         className={`slot-grid ${className ?? ''}`}
         style={{ '--cols': event.dates.length } as CSSProperties}
         {...rest}

@@ -1,12 +1,8 @@
-import {
-  useEffect,
-  useState,
-  useSyncExternalStore,
-  type PointerEvent,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { slotStartMinutes, type EventGrid } from '@flexmeet/shared';
 import { applySelection, sameCell, slotsInRect, type Cell, type PaintMode } from '../lib/grid';
+import { useCoarsePointer } from '../lib/useCoarsePointer';
+import { useHoldToDrag } from '../lib/useHoldToDrag';
 import { SlotGrid, cellFromElement } from './SlotGrid';
 
 interface Drag {
@@ -19,29 +15,34 @@ interface AvailabilityGridProps {
   event: EventGrid;
   selected: ReadonlySet<string>;
   onChange: (next: Set<string>) => void;
-  hint?: ReactNode; // shown above the grid, beside the touch mode switch
-}
-
-// True on touch screens. There a drag can't both scroll and mark, so the user picks.
-function useCoarsePointer(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const query = window.matchMedia('(pointer: coarse)');
-      query.addEventListener('change', onChange);
-      return () => query.removeEventListener('change', onChange);
-    },
-    () => window.matchMedia('(pointer: coarse)').matches,
-  );
+  hint?: ReactNode; // shown above the grid
 }
 
 // Drag a rectangle to mark slots. Starting on an empty cell adds, starting on a
 // marked cell removes (the same as when2meet). Changes are reported on release.
+// With a mouse, dragging starts straight away. On touch screens a swipe scrolls, a tap toggles
+// one slot, and resting the finger for a moment (a haptic tick) starts the drag.
 export function AvailabilityGrid({ event, selected, onChange, hint }: AvailabilityGridProps) {
   const [drag, setDrag] = useState<Drag | null>(null);
   const touch = useCoarsePointer();
-  // Touch starts in scroll mode so a big grid never traps the page.
-  const [marking, setMarking] = useState(false);
-  const canMark = !touch || marking;
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  function startDrag(target: Element | null): boolean {
+    const hit = cellFromElement(target);
+    if (!hit) return false;
+    setDrag({ start: hit.cell, current: hit.cell, mode: selected.has(hit.key) ? 'remove' : 'add' });
+    return true;
+  }
+
+  useHoldToDrag(gridRef, {
+    enabled: touch,
+    onHoldStart: startDrag,
+    onTap: (target) => {
+      const hit = cellFromElement(target);
+      if (!hit) return;
+      onChange(applySelection(selected, [hit.key], selected.has(hit.key) ? 'remove' : 'add'));
+    },
+  });
 
   // While dragging, preview the result without touching `selected`.
   const shown = drag
@@ -69,11 +70,9 @@ export function AvailabilityGrid({ event, selected, onChange, hint }: Availabili
   }, [drag, shown, onChange]);
 
   function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
-    if (!canMark) return;
-    const hit = cellFromElement(e.target as Element);
-    if (!hit) return;
+    if (e.pointerType === 'touch') return; // touch goes through useHoldToDrag
+    if (!startDrag(e.target as Element)) return;
     e.preventDefault(); // stops text selection while dragging
-    setDrag({ start: hit.cell, current: hit.cell, mode: selected.has(hit.key) ? 'remove' : 'add' });
   }
 
   function handlePointerMove(e: PointerEvent<HTMLDivElement>) {
@@ -87,22 +86,11 @@ export function AvailabilityGrid({ event, selected, onChange, hint }: Availabili
   return (
     <>
       {/* Same rows as GroupGrid (meta, then grid) so the two grids line up side by side. */}
-      <div className="grid-meta">
-        {hint}
-        {touch && (
-          <div className="mode-switch" role="group" aria-label="What dragging does">
-            <button type="button" aria-pressed={!marking} onClick={() => setMarking(false)}>
-              Scroll
-            </button>
-            <button type="button" aria-pressed={marking} onClick={() => setMarking(true)}>
-              Mark slots
-            </button>
-          </div>
-        )}
-      </div>
+      <div className="grid-meta">{hint}</div>
       <SlotGrid
+        ref={gridRef}
         event={event}
-        className={canMark ? 'editable' : ''}
+        className="editable"
         cellClassName={(key) => (shown.has(key) ? 'selected' : '')}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

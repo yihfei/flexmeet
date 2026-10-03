@@ -27,6 +27,8 @@
   --accent: #ff4f00;
   --accent-hover: #e84800;
   --accent-text: #111111;
+  /* Hover: a pale accent tint, so "pointing at" never looks like "selected" (grey or ink). */
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--surface));
 
   /* Availability is the accent: your free slots are orange, and the group heatmap runs
      from pale orange to full orange. Selections (chosen names and dates, the touch switch)
@@ -37,14 +39,12 @@
   --faint: #c4c4c4; /* past days, hour lines */
 
   --error: #c8102e;
-  --success: #008a3e;
 
   --radius: 0;
   --space: 1rem;
   /* Form-like pages are 40rem wide; the event page needs 64rem for two grids side by side.
      The header follows the same width, so the logo always lines up with the content. */
   --page-width: 40rem;
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); /* strong ease-out for UI that responds to the user */
 
   font-family: var(--font);
   font-size: var(--text-base);
@@ -52,6 +52,9 @@
   background: var(--bg);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* No grey/blue flash on tap (it lingers through a hold-to-drag): every control here gives
+     its own feedback (press scale, selected state, haptic tick). Focus rings are unaffected. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 * {
@@ -79,7 +82,7 @@ h2 {
 }
 
 h1 {
-  margin: calc(var(--space) * 2) 0 var(--space);
+  margin: var(--space) 0; /* plus main's padding: 32px below the header's rule */
   font-size: clamp(1.75rem, 5vw + 0.5rem, var(--text-2xl)); /* every page title shrinks on phones */
   font-weight: 700;
   letter-spacing: -0.035em; /* big grotesk type wants tight tracking */
@@ -151,34 +154,6 @@ a,
   background: var(--accent);
 }
 
-.api-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-}
-
-.api-status::before {
-  content: '';
-  width: 0.5rem;
-  height: 0.5rem;
-  background: var(--muted);
-}
-
-.api-status[data-state='ok']::before {
-  background: var(--success);
-}
-
-.api-status[data-state='error'] {
-  color: var(--error);
-}
-
-.api-status[data-state='error']::before {
-  background: var(--error);
-}
-
 /* Sections: a heavy rule on top instead of a floating box. The create form, the event
    page's "who are you?" step and the page states all use it. */
 
@@ -224,18 +199,10 @@ button {
   min-height: 2.75rem;
 }
 
+/* No transitions or animations anywhere: every state change is instant. */
 button {
   font-weight: 600;
   cursor: pointer;
-  transition:
-    transform 160ms var(--ease-out),
-    background-color 150ms ease,
-    border-color 150ms ease;
-}
-
-/* Pressing gives instant feedback that the button heard you. */
-button:active:not(:disabled) {
-  transform: scale(0.97);
 }
 
 /* Hover inverts a button to ink, like a pressed key. */
@@ -254,12 +221,6 @@ button:active:not(:disabled) {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  button:active:not(:disabled) {
-    transform: none;
-  }
-}
-
 /* A link that looks like a button, for actions that navigate. */
 a.button {
   display: inline-flex;
@@ -270,13 +231,6 @@ a.button {
   border-radius: var(--radius);
   font-weight: 600;
   text-decoration: none;
-  transition:
-    transform 160ms var(--ease-out),
-    background-color 150ms ease;
-}
-
-a.button:active {
-  transform: scale(0.97);
 }
 
 button:disabled {
@@ -328,7 +282,7 @@ legend {
    same height as a page's title, so switching from loading to loaded doesn't jump. */
 
 .state {
-  margin-top: calc(var(--space) * 2);
+  margin-top: var(--space); /* where a page title would start */
 }
 
 .state.card {
@@ -358,6 +312,112 @@ legend {
   color: var(--error);
   margin: 0;
   font-size: var(--text-sm);
+}
+
+/* Time of day (create page) */
+
+.time-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.time-preset-range {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  opacity: 0.75;
+}
+
+.time-range > .field {
+  margin-bottom: 0;
+}
+
+.time-summary {
+  min-height: 1.5em;
+  margin: 0.5rem 0 0;
+  font-size: var(--text-sm);
+}
+
+/* The app's dropdown with a mouse or trackpad (touch uses the native select): a trigger
+   that looks like a select, opening a list of at most 6 rows that scrolls. */
+
+.listbox-select {
+  position: relative;
+}
+
+.listbox-select-trigger,
+.listbox-select-trigger:hover:not(:disabled) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 400;
+  text-align: left;
+}
+
+.listbox-select-caret {
+  font-size: 0.75em;
+}
+
+.listbox-select-list {
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: calc(6 * 2.25rem + 2px); /* six rows visible; the rest scroll */
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.listbox-select-list-above {
+  top: auto;
+  bottom: calc(100% - 1px);
+}
+
+.listbox-select-list:focus {
+  outline: none; /* focus is shown by the active row */
+}
+
+.listbox-select-list li {
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  line-height: 2.25rem;
+  cursor: pointer;
+}
+
+/* Long values (America/Argentina/Rio_Gallegos) end in "…" rather than wrap. */
+.listbox-select-list li,
+.listbox-select-value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.listbox-select-value {
+  min-width: 0;
+}
+
+.listbox-select-caret {
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.listbox-select-list .listbox-select-active {
+  background: var(--surface-sunken);
+}
+
+.listbox-select-list [aria-selected='true'] {
+  background: var(--mark);
+  color: var(--mark-text);
 }
 
 /* Date picker (create page) */
@@ -422,6 +482,9 @@ legend {
 }
 
 .cal-grid {
+  /* Swipes scroll the page; a held finger drags (useHoldToDrag). No iOS long-press menu. */
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
   display: grid;
   grid-template-columns: var(--cal-week-col) repeat(7, 1fr);
   gap: 3px;
@@ -470,8 +533,6 @@ legend {
   font-size: var(--text-sm);
   font-weight: 500; /* only today is bold */
   font-variant-numeric: tabular-nums;
-  /* Press feedback only: dates fill in dozens of times while you pick, so colour is instant. */
-  transition: transform 160ms var(--ease-out);
 }
 
 .cal-day-outside {
@@ -528,6 +589,15 @@ legend {
 .event-page h1 {
   margin-bottom: 0;
   overflow-wrap: anywhere; /* a long unbroken word in a title can't widen the page */
+}
+
+.event-share {
+  margin-top: var(--space);
+}
+
+/* Wide enough for both labels, so "Copy link" → "Link copied" doesn't change its width. */
+.share-button {
+  min-width: 8.5rem;
 }
 
 .share-link {
@@ -614,14 +684,6 @@ legend {
   gap: 0.5rem;
   max-width: 24rem;
   margin-top: 0.75rem;
-  transition:
-    opacity 200ms var(--ease-out),
-    transform 200ms var(--ease-out);
-
-  @starting-style {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
 }
 
 .picker-new input {
@@ -632,7 +694,7 @@ legend {
 /* Best times: a ruled section like the grids, a ranked list of windows as table rows. */
 
 .best-times {
-  margin: calc(var(--space) * 1.5) 0 calc(var(--space) * 2);
+  margin: calc(var(--space) * 2) 0;
   padding-top: 0.75rem;
   border-top: 2px solid var(--border-strong);
 }
@@ -650,9 +712,23 @@ legend {
   margin: 0;
 }
 
+/* Every row is the same height, so the list stays even when names are long. */
+.best-times {
+  --best-row: 2.875rem;
+}
+
 .best-times-note {
   margin: 0.5rem 0 0;
   font-size: var(--text-sm);
+}
+
+/* The "Show 30m" hint: one line. */
+.best-times-hint {
+  margin: 0.5rem 0 0;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .best-times-list {
@@ -670,7 +746,9 @@ legend {
   align-items: center;
   gap: 0.25rem var(--space);
   width: 100%;
+  height: var(--best-row); /* fixed: names that don't fit end in "…" rather than add a line */
   min-height: 0;
+  overflow: hidden;
   padding: 0.625rem 0.5rem;
   border: none;
   border-bottom: 1px solid var(--border);
@@ -680,21 +758,20 @@ legend {
   text-align: left;
 }
 
-/* Wide rows don't scale on press (it reads as a wobble); the background answers instead. */
+/* Pressing a row shades it, so the tap registers. */
 .best-time:active:not(:disabled) {
-  transform: none;
   background: var(--surface-sunken);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .best-time:hover:not(:disabled) {
-    background: var(--surface-sunken);
+    background: var(--accent-soft);
   }
 }
 
 /* The chosen suggestion: an ink bar on its left edge, matching the ink frame on the grid. */
-.best-time[aria-pressed='true'],
-.best-time[aria-pressed='true']:hover:not(:disabled) {
+/* The chosen suggestion keeps its ink bar even while hovered (then tinted like any hover). */
+.best-time[aria-pressed='true'] {
   background: var(--surface-sunken);
   box-shadow: inset 4px 0 0 var(--text);
 }
@@ -733,11 +810,17 @@ legend {
 .best-time-missing {
   font-size: var(--text-sm);
   color: var(--muted);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Phones: when and count on the first line, the bar and who's missing below. */
 @media (max-width: 40rem) {
+  .best-times {
+    --best-row: 5.25rem; /* three lines: when and count, the bar, who's missing */
+  }
+
   .best-time,
   .best-time:hover:not(:disabled) {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -793,6 +876,14 @@ legend {
   padding-bottom: 0.5rem;
 }
 
+/* "Saving…" / "Saved." on one reserved line, so it never moves the grid. */
+.save-status {
+  min-height: 1.5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .grid-meta > p {
   margin: 0;
   font-size: var(--text-sm); /* helper text is the same size everywhere */
@@ -818,9 +909,17 @@ legend {
   font-size: var(--text-sm);
 }
 
-.mode-switch button[aria-pressed='true'] {
+/* The chosen option stays ink when hovered (the plain hover rule above would turn it white). */
+.mode-switch button[aria-pressed='true'],
+.mode-switch button[aria-pressed='true']:hover:not(:disabled) {
   background: var(--mark);
   color: var(--mark-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mode-switch button:hover:not([aria-pressed='true'], :disabled) {
+    background: var(--accent-soft);
+  }
 }
 
 /* Scrolls in both directions inside its own box, so a 31-day, 24-hour grid stays on screen
@@ -911,7 +1010,10 @@ legend {
 }
 
 .slot-grid.editable {
-  touch-action: none; /* dragging paints instead of scrolling on touch screens */
+  /* Swipes still scroll; a held finger drags (see useHoldToDrag). manipulation also removes
+     the double-tap-to-zoom delay, so taps toggle straight away. */
+  touch-action: manipulation;
+  -webkit-touch-callout: none; /* no iOS long-press menu */
   cursor: pointer;
 }
 

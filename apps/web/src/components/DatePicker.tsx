@@ -12,6 +12,8 @@ import {
 } from '../lib/calendar';
 import type { PaintMode } from '../lib/grid';
 import { todayYmd } from '../lib/time';
+import { useCoarsePointer } from '../lib/useCoarsePointer';
+import { useHoldToDrag } from '../lib/useHoldToDrag';
 
 interface DatePickerProps {
   value: string[]; // sorted 'YYYY-MM-DD'
@@ -23,6 +25,7 @@ interface Drag {
   anchor: string;
   current: string;
   mode: PaintMode;
+  touch?: boolean; // started by a held finger rather than a mouse
 }
 
 const weekStartsOn = localeWeekStart(navigator.language);
@@ -46,9 +49,10 @@ const ARROW_STEPS: Record<string, number> = {
 };
 
 // A month calendar for picking an event's dates. Click a day to toggle it, drag across days
-// (mouse or pen) to select a run of them, use a row's "M–F" to fill that week's workdays, or
-// a weekday letter to fill that weekday all month. Touch taps to toggle, so the page still
-// scrolls under a finger. Past days can't be picked.
+// to select a run of them, use a row's "M–F" to fill that week's workdays, or a weekday
+// letter to fill that weekday all month. On touch screens a swipe scrolls the page, a tap
+// toggles, and resting the finger for a moment (a haptic tick) starts the drag. Past days
+// can't be picked.
 export function DatePicker({ value, onChange, max }: DatePickerProps) {
   const today = todayYmd();
   const selected = new Set(value);
@@ -68,6 +72,9 @@ export function DatePicker({ value, onChange, max }: DatePickerProps) {
   const [focusDay, setFocusDay] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const moveFocus = useRef(false); // only steal focus after an arrow key, never on render
+  const touch = useCoarsePointer();
+  // After a touch drag, the browser may still send a click to the day it started on.
+  const ignoreClicksUntil = useRef(0);
 
   const weeks = monthWeeks(view.year, view.month, weekStartsOn);
   const visible = weeks.flat();
@@ -91,15 +98,18 @@ export function DatePicker({ value, onChange, max }: DatePickerProps) {
     onChange(result.dates);
   }
 
-  // Releasing anywhere ends a drag. A drag that came back to where it started is a click,
-  // which the day's onClick handles.
+  // Releasing anywhere ends a drag. A mouse drag that came back to where it started is a
+  // click, which the day's onClick handles; a touch hold that never moved toggles that day.
   useEffect(() => {
     if (!drag) return;
     const finish = () => {
       const latest = dragRef.current;
       if (latest && latest.anchor !== latest.current) {
         commit(daysBetween(latest.anchor, latest.current), latest.mode);
+      } else if (latest?.touch) {
+        commit([latest.anchor], latest.mode);
       }
+      if (latest?.touch) ignoreClicksUntil.current = performance.now() + 600;
       setDrag(null);
     };
     const cancel = () => setDrag(null);
@@ -121,6 +131,31 @@ export function DatePicker({ value, onChange, max }: DatePickerProps) {
     if (e.pointerType === 'touch' || e.button !== 0 || !selectable(day)) return;
     setDrag({ anchor: day, current: day, mode: selected.has(day) ? 'remove' : 'add' });
   }
+
+  const dayOf = (el: Element | null) => el?.closest<HTMLElement>('[data-day]')?.dataset.day;
+
+  // Touch: taps stay ordinary clicks; a held finger drags across days.
+  useHoldToDrag(gridRef, {
+    enabled: touch,
+    onHoldStart: (target) => {
+      const day = dayOf(target);
+      if (!day || !selectable(day)) return false;
+      setDrag({
+        anchor: day,
+        current: day,
+        mode: selected.has(day) ? 'remove' : 'add',
+        touch: true,
+      });
+      return true;
+    },
+    onHoldMove: (under) => {
+      const day = dayOf(under);
+      const latest = dragRef.current;
+      if (latest && day && selectable(day) && day !== latest.current) {
+        setDrag({ ...latest, current: day });
+      }
+    },
+  });
 
   function handleDayKeyDown(e: KeyboardEvent<HTMLButtonElement>, day: string) {
     const step = ARROW_STEPS[e.key];
@@ -231,6 +266,7 @@ export function DatePicker({ value, onChange, max }: DatePickerProps) {
                   }
                 }}
                 onClick={() => {
+                  if (performance.now() < ignoreClicksUntil.current) return;
                   commit([day], selected.has(day) ? 'remove' : 'add');
                   setFocusDay(day);
                 }}
@@ -245,7 +281,11 @@ export function DatePicker({ value, onChange, max }: DatePickerProps) {
 
       <p className="cal-summary" role="status">
         {value.length === 0 ? (
-          <span className="muted">Click a day, or drag across days, to pick dates.</span>
+          <span className="muted">
+            {touch
+              ? 'Tap a day, or hold and drag across days.'
+              : 'Click a day, or drag across days, to pick dates.'}
+          </span>
         ) : (
           <>
             <span>

@@ -134,7 +134,10 @@ export function BestTimes({ event, participants, highlight, onHighlight }: BestT
                   <span className="best-time-bar" aria-hidden="true">
                     <span style={{ width: `${(w.free.length / best) * 100}%` }} />
                   </span>
-                  <span className="best-time-missing">
+                  <span
+                    className="best-time-missing"
+                    title={w.missing.length > 0 ? `Missing: ${w.missing.join(', ')}` : undefined}
+                  >
                     {w.missing.length > 0 ? (
                       <>
                         Missing: <NameList names={w.missing} limit={3} />
@@ -151,11 +154,10 @@ export function BestTimes({ event, participants, highlight, onHighlight }: BestT
       )}
 
       {everyoneAt !== null && (
-        <p className="muted best-times-note">
-          No {formatLength(length)} time works for all {total}. Everyone can make a{' '}
-          {formatLength(everyoneAt)} meeting.{' '}
+        <p className="muted best-times-hint">
+          Not everyone fits {formatLength(length)}.{' '}
           <button type="button" className="link-button" onClick={() => changeLength(everyoneAt)}>
-            Show {formatLength(everyoneAt)}
+            Show {formatLength(everyoneAt)}, which everyone can make
           </button>
         </p>
       )}
