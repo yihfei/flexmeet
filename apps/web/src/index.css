@@ -929,6 +929,9 @@ legend {
   max-width: 100%;
   overflow: auto;
   max-height: min(65vh, 40rem);
+  /* Room between the last day / last row and the box's border. Top and left stay at 0, where
+     the sticky date headers and time labels sit against the edge. */
+  padding: 0 0.5rem 0.5rem 0;
   background: var(--surface);
   border: 1px solid var(--border-strong);
 }
