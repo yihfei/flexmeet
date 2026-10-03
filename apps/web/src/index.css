@@ -629,6 +629,142 @@ legend {
   min-width: 0;
 }
 
+/* Best times: a ruled section like the grids, a ranked list of windows as table rows. */
+
+.best-times {
+  margin: calc(var(--space) * 1.5) 0 calc(var(--space) * 2);
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--border-strong);
+}
+
+.best-times-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem var(--space);
+  margin-bottom: 0.5rem;
+}
+
+.best-times-head h2 {
+  margin: 0;
+}
+
+.best-times-note {
+  margin: 0.5rem 0 0;
+  font-size: var(--text-sm);
+}
+
+.best-times-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each suggestion is a full-width row; selecting one frames it on the group heatmap. */
+.best-time,
+.best-time:hover:not(:disabled) {
+  display: grid;
+  /* Fixed first columns, so the rows line up: wide enough for "Wed 30 Sept  10:30–12:30". */
+  grid-template-columns: 16rem 7.5rem 6rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem var(--space);
+  width: 100%;
+  min-height: 0;
+  padding: 0.625rem 0.5rem;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 400;
+  text-align: left;
+}
+
+/* Wide rows don't scale on press (it reads as a wobble); the background answers instead. */
+.best-time:active:not(:disabled) {
+  transform: none;
+  background: var(--surface-sunken);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .best-time:hover:not(:disabled) {
+    background: var(--surface-sunken);
+  }
+}
+
+/* The chosen suggestion: an ink bar on its left edge, matching the ink frame on the grid. */
+.best-time[aria-pressed='true'],
+.best-time[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  box-shadow: inset 4px 0 0 var(--text);
+}
+
+.best-time-when {
+  display: grid;
+  grid-template-columns: 6.75rem auto; /* dates and times each line up down the list */
+  gap: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.best-time-range {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+.best-time-count {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The share of the group free, in the availability colour. */
+.best-time-bar {
+  height: 0.5rem;
+  border: 1px solid var(--border-strong);
+}
+
+.best-time-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--free);
+}
+
+.best-time-missing {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* Phones: when and count on the first line, the bar and who's missing below. */
+@media (max-width: 40rem) {
+  .best-time,
+  .best-time:hover:not(:disabled) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'when count'
+      'bar bar'
+      'missing missing';
+  }
+
+  .best-time-when {
+    grid-area: when;
+    flex-wrap: wrap;
+  }
+
+  .best-time-count {
+    grid-area: count;
+  }
+
+  .best-time-bar {
+    grid-area: bar;
+  }
+
+  .best-time-missing {
+    grid-area: missing;
+  }
+}
+
 /* Both columns share four rows (heading, meta, grid, group summary) through subgrid, so the
    two grids start at the same height whatever sits above each one: the hint, the legend,
    the touch switch, or nothing. */
@@ -784,6 +920,31 @@ legend {
 }
 
 /* Ink outline: it shows on white, pale orange and full orange cells alike. */
+/* A Best times window on the heatmap: an ink frame around its cells. */
+.slot.framed {
+  box-shadow:
+    inset 2px 0 0 var(--text),
+    inset -2px 0 0 var(--text);
+}
+
+.slot.framed.framed-start {
+  box-shadow:
+    inset 2px 0 0 var(--text),
+    inset -2px 0 0 var(--text),
+    inset 0 2px 0 var(--text);
+}
+
+.slot.framed.framed-end {
+  box-shadow:
+    inset 2px 0 0 var(--text),
+    inset -2px 0 0 var(--text),
+    inset 0 -2px 0 var(--text);
+}
+
+.slot.framed.framed-start.framed-end {
+  box-shadow: inset 0 0 0 2px var(--text);
+}
+
 .slot.hovered {
   outline: 2px solid var(--text);
   outline-offset: -2px;

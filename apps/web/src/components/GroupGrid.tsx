@@ -1,10 +1,24 @@
-import { Fragment, useMemo, useState } from 'react';
-import type { EventGrid, ParticipantResponse } from '@flexmeet/shared';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  slotKey,
+  slotStartMinutes,
+  type EventGrid,
+  type ParticipantResponse,
+} from '@flexmeet/shared';
+import { NameList } from './NameList';
 import { SlotGrid, cellFromElement } from './SlotGrid';
+
+// A time range on one date, framed on the heatmap (e.g. a suggestion from Best times).
+export interface GridHighlight {
+  date: string;
+  startMinute: number;
+  endMinute: number;
+}
 
 interface GroupGridProps {
   event: EventGrid;
   participants: ParticipantResponse[];
+  highlight?: GridHighlight | null;
 }
 
 // Shade for a slot where `count` people are free, relative to the best slot (`max`), so
@@ -17,10 +31,29 @@ function heatColor(count: number, max: number): string {
 
 // Heatmap of how many people are free in each slot. Hover a cell to see who, or tap/click
 // it to keep it selected (touch screens have no hover).
-export function GroupGrid({ event, participants }: GroupGridProps) {
+export function GroupGrid({ event, participants, highlight = null }: GroupGridProps) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [pinned, setPinned] = useState<string | null>(null);
   const active = hovered ?? pinned;
+  const metaRef = useRef<HTMLDivElement>(null);
+
+  // The highlighted window's cells, top to bottom.
+  const framed = highlight
+    ? slotStartMinutes(event)
+        .filter((m) => m >= highlight.startMinute && m < highlight.endMinute)
+        .map((m) => slotKey(highlight.date, m))
+    : [];
+  const framedSet = new Set(framed);
+  const firstFramed = framed[0];
+
+  // Bring a newly highlighted window into view, inside the grid's scroll box and the page.
+  useEffect(() => {
+    if (!firstFramed) return;
+    // GroupGrid renders into its section's subgrid rows, so search from that section.
+    metaRef.current?.parentElement
+      ?.querySelector(`[data-slot="${firstFramed}"]`)
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [firstFramed]);
 
   // slot key -> names of people free then
   const freeBySlot = useMemo(() => {
@@ -41,7 +74,9 @@ export function GroupGrid({ event, participants }: GroupGridProps) {
   return (
     <>
       {/* Same rows as AvailabilityGrid (meta, then grid) so the two grids line up side by side. */}
-      <div className="grid-meta">{max > 0 && <HeatLegend max={max} total={total} />}</div>
+      <div className="grid-meta" ref={metaRef}>
+        {max > 0 && <HeatLegend max={max} total={total} />}
+      </div>
       <SlotGrid
         event={event}
         cellStyle={(key) => {
@@ -49,7 +84,14 @@ export function GroupGrid({ event, participants }: GroupGridProps) {
           if (count === 0) return undefined;
           return { background: heatColor(count, max) };
         }}
-        cellClassName={(key) => (key === active ? 'hovered' : '')}
+        cellClassName={(key) =>
+          [
+            key === active ? 'hovered' : '',
+            framedSet.has(key) ? 'framed' : '',
+            key === framed[0] ? 'framed-start' : '',
+            key === framed.at(-1) ? 'framed-end' : '',
+          ].join(' ')
+        }
         onPointerOver={(e) => setHovered(cellFromElement(e.target as Element)?.key ?? null)}
         onPointerLeave={() => setHovered(null)}
         onClick={(e) => {
@@ -78,21 +120,6 @@ export function GroupGrid({ event, participants }: GroupGridProps) {
           <p className="muted">Hover or tap a cell to see who's free.</p>
         )}
       </div>
-    </>
-  );
-}
-
-// "Ana, Ben, Chi +12 more". <bdi> keeps the commas in place around right-to-left names.
-function NameList({ names, limit = 8 }: { names: string[]; limit?: number }) {
-  return (
-    <>
-      {names.slice(0, limit).map((name, i) => (
-        <Fragment key={name}>
-          {i > 0 && ', '}
-          <bdi>{name}</bdi>
-        </Fragment>
-      ))}
-      {names.length > limit && ` +${names.length - limit} more`}
     </>
   );
 }

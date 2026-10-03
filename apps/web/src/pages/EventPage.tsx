@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import type { EventResponse, ParticipantResponse } from '@flexmeet/shared';
 import { AvailabilityGrid } from '../components/AvailabilityGrid';
-import { GroupGrid } from '../components/GroupGrid';
+import { BestTimes } from '../components/BestTimes';
+import { GroupGrid, type GridHighlight } from '../components/GroupGrid';
 import { ParticipantPicker } from '../components/ParticipantPicker';
 import { minutesToTime } from '../lib/time';
 import { NotFoundPage } from './NotFoundPage';
@@ -77,6 +78,8 @@ function EventDetails({ event }: { event: EventResponse }) {
   const [participants, setParticipants] = useState(event.participants);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  // A Best times suggestion, framed on the group heatmap.
+  const [highlight, setHighlight] = useState<GridHighlight | null>(null);
   // Each save gets a number; responses from older saves are ignored if they arrive late.
   const latestSave = useRef(0);
 
@@ -174,6 +177,13 @@ function EventDetails({ event }: { event: EventResponse }) {
         onAdded={handleAdded}
       />
 
+      <BestTimes
+        event={event}
+        participants={participants}
+        highlight={highlight}
+        onHighlight={setHighlight}
+      />
+
       <div className="grids">
         <section>
           <h2>{me ? `${me.name}'s availability` : 'Your availability'}</h2>
@@ -196,7 +206,7 @@ function EventDetails({ event }: { event: EventResponse }) {
         </section>
         <section>
           <h2>Group availability</h2>
-          <GroupGrid event={event} participants={participants} />
+          <GroupGrid event={event} participants={participants} highlight={highlight} />
         </section>
       </div>
     </div>
